@@ -1,0 +1,74 @@
+services:
+  fastapi-dev:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./app:/app/app
+    depends_on:
+      - postgres
+      - redis
+    env_file:
+      - .env
+
+  migrator:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    volumes:
+      - ./alembic:/app/alembic
+      - ./app:/app/app
+    depends_on:
+      - postgres
+    env_file:
+      - .env
+    environment:
+      - ALEMBIC_LOCAL=false # Set to "true" for local development
+    command: alembic upgrade head
+
+  postgres:
+    image: postgres
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: propease
+
+    ports:
+      - "15432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+
+  pgadmin:
+    image: dpage/pgadmin4
+    environment:
+      PGADMIN_DEFAULT_EMAIL: "admin@admin.com"
+      PGADMIN_DEFAULT_PASSWORD: "admin"
+    ports:
+      - "80:80"
+    depends_on:
+      - postgres
+    volumes:
+      - pgadmin_data:/var/lib/pgadmin
+
+  redis:
+    image: redis
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+
+  redis-commander:
+    image: rediscommander/redis-commander:latest
+    ports:
+      - "8081:8081"
+    environment:
+      REDIS_HOSTS: "local:redis:6379"
+    depends_on:
+      - redis
+
+volumes:
+  postgres_data:
+  pgadmin_data:
+  redis_data:
