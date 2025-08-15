@@ -7,8 +7,10 @@ from app.db.base import Base
 
 from alembic import context
 from dotenv import load_dotenv
+from app.db.load_models import load_models
 
 load_dotenv()
+load_models()
 
 print("ALEMBIC_LOCAL", os.getenv("ALEMBIC_LOCAL"))
 
